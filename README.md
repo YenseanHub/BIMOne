@@ -236,4 +236,4 @@ work/<task-name>/
 
 - 维护者：BIMOne
 - 联系邮箱：`bimone@example.com`
-- 仓库当前未发现 `LICENSE` 文件，使用前请确认授权约定。
+- 项目采用 MIT License，详见 `LICENSE`。
