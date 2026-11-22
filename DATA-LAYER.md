@@ -81,7 +81,9 @@ BIMOne/work/<task-name>/
     "height": 3000,
     "typeId": -1,
     "layer": "0",
-    "z": 0
+    "z": 0,
+    "wallThicknessMm": 240,
+    "wallTypeName": "BIMOne_Wall_240mm"
   },
   {
     "handle": "2B1",
@@ -93,12 +95,37 @@ BIMOne/work/<task-name>/
     "height": 120,
     "typeId": -1,
     "layer": "FLOOR",
-    "z": 0
+    "z": 0,
+    "floorThicknessMm": 120,
+    "floorTypeName": "BIMOne_Floor_120mm"
+  },
+  {
+    "handle": "DOOR_12",
+    "category": "Door",
+    "start": [1200, 0, 0],
+    "end": null,
+    "points": null,
+    "baseLevel": 0,
+    "height": 2100,
+    "typeId": -1,
+    "layer": "0",
+    "z": 0,
+    "familyName": "单扇门",
+    "widthMm": 900
   }
 ]
 ```
 
 字段与 C# `FanmoElement` 一一对应（见 `Models/Architecture/FanmoElement.cs`），长度单位 mm。
+
+完整翻模扩展字段：
+
+| 字段 | 作用 |
+| --- | --- |
+| `wallThicknessMm` / `wallTypeName` | 墙厚与目标墙类型；Revit 端按名称/厚度查找，找不到则复制默认类型并设宽 |
+| `floorThicknessMm` / `floorTypeName` | 板厚与目标楼板类型 |
+| `familyName` / `widthMm` / `rotationDeg` | 门/窗/柱等族占位 |
+
 **坐标必须来自 IR 的真实 start/end/points，不得臆造**。
 
 ### (4) `<task>.review.json` — 复查报告
@@ -125,7 +152,7 @@ BIMOne/work/<task-name>/
 [2] 专家 Read t.ir.json → 语义研判 + 图像复核(cad__verify_image)
         ↓ 写 t.commands.json（核心交接产物，大模型可直接编辑）
 [3] revit__fanmo_build(dataPath=work/t.commands.json)
-        → McpServer 读文件 → TCP 8091 → Plugin → CommandSet 建模
+        → McpServer 读文件 → TCP 8982 → Plugin → CommandSet 建模
         ↓
 [4] revit__fanmo_review(outPath=work/t.review.json) → 回写复查报告
         ↓

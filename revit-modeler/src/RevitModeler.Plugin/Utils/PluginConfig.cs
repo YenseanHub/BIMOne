@@ -7,8 +7,8 @@ namespace RevitModeler.Plugin.Utils;
 /// <summary>插件级配置：集中声明隔离参数（端口、命令目录），避免散落魔法值。</summary>
 public static class PluginConfig
 {
-    /// <summary>独立 TCP 端口。revit-mcp Host 固定 8080，这里用 8091 避免冲突。</summary>
-    public static int Port => ReadPortFromEnvOrDefault(8091);
+    /// <summary>独立 TCP 端口。revit-mcp Host 固定 8080，这里用 8982 避免冲突。</summary>
+    public static int Port => ReadPortFromEnvOrDefault(8982);
 
     /// <summary>插件安装目录（本 DLL 所在目录）。</summary>
     public static string PluginDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

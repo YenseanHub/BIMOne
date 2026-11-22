@@ -1,4 +1,4 @@
-// 端到端冒烟：假 plugin (TCP 8091) + 真 MCP Server (stdio) + JSON-RPC 客户端
+// 端到端冒烟：假 plugin (TCP 18982) + 真 MCP Server (stdio) + JSON-RPC 客户端
 import net from "net";
 import { spawn } from "child_process";
 import path from "path";
@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEntry = path.resolve(__dirname, "build/index.js");
 
-// 1) 假 plugin：监听 8091，收到 JSON-RPC 就回 pong
+// 1) 假 plugin：监听 18982，收到 JSON-RPC 就回 pong
 const fake = net.createServer((sock) => {
   sock.on("error", () => {}); // 子进程被 kill 时会 ECONNRESET，忽略
   sock.on("data", (data) => {
@@ -18,7 +18,7 @@ const fake = net.createServer((sock) => {
       result: {
         ok: true,
         service: "BIMOne.RevitModeler",
-        port: 8091,
+        port: 18982,
         commands: ["fanmo_build", "fanmo_review"],
         echoMethod: req.method,
       },
@@ -26,13 +26,13 @@ const fake = net.createServer((sock) => {
     sock.write(JSON.stringify(res));
   });
 });
-await new Promise((resolve) => fake.listen(8091, "127.0.0.1", resolve));
-console.log("[test] 假 plugin 已监听 8091");
+await new Promise((resolve) => fake.listen(18982, "127.0.0.1", resolve));
+console.log("[test] 假 plugin 已监听 18982");
 
 // 2) 启动 MCP Server 子进程
 const child = spawn(process.execPath, [serverEntry], {
   stdio: ["pipe", "pipe", "pipe"],
-  env: { ...process.env, BIMONE_REVIT_PORT: "8091" },
+  env: { ...process.env, BIMONE_REVIT_PORT: "18982" },
 });
 let stderr = "";
 child.stderr.on("data", (d) => { stderr += d.toString(); });

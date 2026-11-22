@@ -3,7 +3,7 @@ import * as net from "net";
 /**
  * 到 RevitModeler.Plugin 的 JSON-RPC over TCP 连接。
  * 与 mcp-servers-for-revit/server/src/utils/SocketClient.ts 同协议，
- * 但端口指向 BIMOne 独立插件（默认 8091），并做了响应分包处理。
+ * 但端口指向 BIMOne 独立插件（默认 8982），并做了响应分包处理。
  */
 export class FanmoRevitClient {
   private host: string;
@@ -13,16 +13,16 @@ export class FanmoRevitClient {
   private pending = new Map<string, (raw: string) => void>();
   private buffer = "";
 
-  constructor(host = "127.0.0.1", port = 8091) {
+  constructor(host = "127.0.0.1", port = 8982) {
     this.host = host;
     this.port = port;
   }
 
   static fromEnv(): FanmoRevitClient {
     const host = process.env.BIMONE_REVIT_HOST || "127.0.0.1";
-    const rawPort = process.env.BIMONE_REVIT_PORT || "8091";
+    const rawPort = process.env.BIMONE_REVIT_PORT || "8982";
     const port = Number.parseInt(rawPort, 10);
-    return new FanmoRevitClient(host, Number.isFinite(port) ? port : 8091);
+    return new FanmoRevitClient(host, Number.isFinite(port) ? port : 8982);
   }
 
   private setup(): void {
@@ -110,7 +110,7 @@ export class FanmoRevitClient {
     });
   }
 
-  async sendCommand(method: string, params: unknown, timeoutMs = 120000): Promise<any> {
+  async sendCommand(method: string, params: unknown, timeoutMs = 600000): Promise<any> {
     await this.ensureConnected();
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const request = { jsonrpc: "2.0", method, params, id };

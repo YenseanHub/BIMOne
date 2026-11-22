@@ -17,6 +17,31 @@
       "commandName": "fanmo_review",
       "description": "复查当前模型的墙/板并输出问题清单（零长度/坐标缺失）",
       "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_cleanup",
+      "description": "按 ElementId 清理 BIMOne 翻模构件，用于重跑前回滚",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_export",
+      "description": "导出当前模型墙/板/柱/梁真实几何与截面，用于精度校验",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_diagnose",
+      "description": "只读诊断：墙宽/板厚参数可写性、柱梁族截面参数、标高与构件统计",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_zoom",
+      "description": "把活动视图缩放到模型范围（翻模坐标常在原点百米之外，视图不跟随就看到空屏）",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_snapshot",
+      "description": "把活动视图导出为 PNG，用于确认视图里到底有没有模型",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
     }
   ]
 }

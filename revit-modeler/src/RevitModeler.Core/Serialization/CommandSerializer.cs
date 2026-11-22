@@ -26,7 +26,14 @@ public static class CommandSerializer
                 baseLevel = 0d,
                 height = c.Action == ModelAction.CreateFloor ? 120d : 3000d,
                 typeId = -1,
-                layer = c.Layer
+                layer = c.Layer,
+                wallTypeName = c.WallTypeName,
+                wallThicknessMm = c.WallThicknessMm,
+                floorTypeName = c.FloorTypeName,
+                floorThicknessMm = c.FloorThicknessMm,
+                familyName = c.FamilyName,
+                widthMm = c.WidthMm,
+                rotationDeg = c.RotationDeg
             });
         return JsonSerializer.Serialize(items, new JsonSerializerOptions
         {

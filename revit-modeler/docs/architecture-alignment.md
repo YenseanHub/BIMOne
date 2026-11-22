@@ -21,7 +21,7 @@ Revit 端是独立插件、独立建模/review，不需要和任何外部 Host �
 | `server/`（Node.js MCP server，暴露 tools） | `src/RevitModeler.McpServer/` | ✅ 照搬：Node + `@modelcontextprotocol/sdk` + stdio，工具按文件分注册 |
 | `server/src/utils/SocketClient.ts` + `ConnectionManager.ts` | `src/RevitModeler.McpServer/src/utils/FanmoRevitClient.ts` + `ConnectionManager.ts` | ✅ 照搬并增强：同 JSON-RPC 协议 + 响应分包 + mutex + 单例连接 |
 | `plugin/Core/Application.cs`（Ribbon + 开关） | `src/RevitModeler.Plugin/Core/Application.cs` + `ServerSwitchCommand.cs` | ✅ 照搬：Ribbon「BIMOne 翻模」+ 服务开关按钮 |
-| `plugin/Core/SocketService.cs`（TCP/JSON-RPC） | `src/RevitModeler.Plugin/Core/FanmoSocketService.cs` | ✅ 照搬：TCP 监听 + JSON-RPC 2.0，端口独立 8091 |
+| `plugin/Core/SocketService.cs`（TCP/JSON-RPC） | `src/RevitModeler.Plugin/Core/FanmoSocketService.cs` | ✅ 照搬：TCP 监听 + JSON-RPC 2.0，端口独立 8982 |
 | `plugin/Core/CommandManager.cs`（反射加载命令） | `src/RevitModeler.Plugin/Core/FanmoCommandLoader.cs` | ✅ 照搬：读 command.json → 反射 `IRevitCommand` → 注册到自己注册表 |
 | `plugin/Core/RevitCommandRegistry.cs` / `CommandExecutor.cs` | `src/RevitModeler.Plugin/Core/CommandRegistry.cs` + FanmoSocketService 内联执行 | ✅ 照搬：SDK `ICommandRegistry` + JSON-RPC dispatch |
 | `plugin/Core/ExternalEventManager.cs` | — | ⚠️ 刻意省略：SDK `ExternalEventCommandBase` 构造函数自建 `ExternalEvent`、自等待（已由 IL 探针实证），无需复刻 Host 事件管理器 |
@@ -51,7 +51,7 @@ revit-modeler/
 │   │       └── utils/{FanmoRevitClient,ConnectionManager}.ts
 │   ├── RevitModeler.Core/          # 【脑子】纯逻辑，net8.0，不依赖 RevitAPI
 │   │   ├── Models/ Semantics/ Mapping/ Serialization/ Utils/
-│   ├── RevitModeler.Plugin/        # 【Host】Revit add-in，TCP 8091 + 反射加载命令
+│   ├── RevitModeler.Plugin/        # 【Host】Revit add-in，TCP 8982 + 反射加载命令
 │   │   ├── BIMOne.RevitModeler.addin  # 独立 ClientId
 │   │   ├── Core/{Application,ServerSwitchCommand,FanmoSocketService,FanmoCommandLoader,CommandRegistry}
 │   │   ├── Configuration/CommandManifest.cs
@@ -71,12 +71,12 @@ v1 的决策是「revit-modeler 只做 commandset、挂 revit-mcp Host」，理�
 
 1. **契约对称、一眼可辨**：用户需要在文件层面就能分清 server / plugin / commandset 三层。
    复用 Host 会让 revit-modeler 只剩一个 commandset，从目录上看不到另两层，是"单薄感"的根源。
-2. **独立可控**：翻模链路的端口、命令注册表、部署目录、工具命名都可自主决定（8091 / revit__* 前缀），
+2. **独立可控**：翻模链路的端口、命令注册表、部署目录、工具命名都可自主决定（8982 / revit__* 前缀），
    不受 revit-mcp 版本升级影响。
 3. **实证支持**：IL 探针确认 SDK `ExternalEventCommandBase` 自建 `ExternalEvent` + 自等待，
    不依赖 Host 的 `ExternalEventManager`，因此 plugin 层可以很薄，复刻成本远低于预期。
 
-**代价**：无。ClientId / 端口 8091 只是 Revit 插件的常规唯一标识（避免与其他 add-in 冲突），
+**代价**：无。ClientId / 端口 8982 只是 Revit 插件的常规唯一标识（避免与其他 add-in 冲突），
 不是为共存做的隔离设计。
 
 ## 5. 与 CAD 端的关系：文件交接，零直接通信
@@ -90,7 +90,7 @@ Revit 读 `*.commands.json` 建模、写 `*.review.json`。职责不同，不合
 
 ```
 agent 调 revit__fanmo_build(dataPath=work/t.commands.json)
-  → RevitModeler.McpServer 读文件 → (stdio) ── TCP 8091 JSON-RPC: method=fanmo_build ──▶
+  → RevitModeler.McpServer 读文件 → (stdio) ── TCP 8982 JSON-RPC: method=fanmo_build ──▶
   → RevitModeler.Plugin FanmoSocketService → CommandRegistry 查 fanmo_build
   → FanmoBuildCommand.Execute(JObject, requestId)：解析 data → Handler.SetParameters
   → RaiseAndWaitForCompletion() → SDK 自建 ExternalEvent 切 UI 线程

@@ -17,4 +17,7 @@ public sealed class CadEntity
     public List<double[]> Points { get; set; }
     public double[] Center { get; set; }
     public double Radius { get; set; }
+    public string BlockName { get; set; } = "";
+    public string LineWeight { get; set; } = "";
+    public string Color { get; set; } = "";
 }

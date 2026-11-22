@@ -31,7 +31,7 @@ DWG / DXF drawing
       │                                      (core handoff artifact, directly editable)
       ▼
 [4] revit__fanmo_build(dataPath=...)
-      │   RevitModeler.McpServer → TCP 8091 → Plugin → CommandSet
+      │   RevitModeler.McpServer → TCP 8982 → Plugin → CommandSet
       ▼
 [5] revit__fanmo_review                     → <task>.review.json
       │                                      (wall/floor counts, issue list)
@@ -121,10 +121,11 @@ cd ../../..
 
 ```powershell
 dotnet run --project cad-reader/src/CadReader.Cli -c Release -- `
-  sampleData/一居室公寓.dwg work/demo/apartment.ir.json
+  sampleData/一居室公寓.dwg work/demo/apartment.ir.json `
+  --commands work/demo/apartment.commands.json
 ```
 
-The default output is `<name>.ir.json` beside the input file. Use `--summary` to print only the statistics summary; the complete IR is still written to `outPath`.
+The CLI writes the full IR to `outPath`. With `--summary`, `outPath` contains only the statistics summary. Use `--commands <path>` to generate the complete Revit command file from the same IR, including inferred wall thickness, floor outline and family placeholders.
 
 ### 3. Deploy the Revit add-in
 
@@ -204,7 +205,7 @@ See `DATA-LAYER.md` for field definitions and `CONTRACTS.md` for the endpoint ma
 
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
-| `BIMONE_REVIT_PORT` | `8091` | Revit add-in listening port and MCP client connection port; both sides must match |
+| `BIMONE_REVIT_PORT` | `8982` | Revit add-in listening port and MCP client connection port; both sides must match |
 | `BIMONE_REVIT_HOST` | `127.0.0.1` | Host used by the MCP client to reach the Revit add-in; client side only |
 | `BIMONE_WORKDIR` | `BIMOne/work/` | Documented workspace override; not wired into the code yet, do not rely on it |
 

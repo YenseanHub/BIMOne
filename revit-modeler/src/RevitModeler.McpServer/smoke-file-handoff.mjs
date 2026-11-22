@@ -12,8 +12,8 @@ const serverEntry = path.resolve(__dirname, "build/index.js");
 // 1) 临时 commands.json（大模型研判后的产物）
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "bimone-"));
 const commands = [
-  { handle: "52", category: "Wall", start: [0, 0, 0], end: [3600, 0, 0], baseLevel: 0, height: 3000, layer: "0", z: 0 },
-  { handle: "60", category: "Floor", points: [[0,0,0],[3600,0,0],[3600,2700,0],[0,2700,0]], baseLevel: 0, height: 120, layer: "FLOOR", z: 0 },
+  { handle: "52", category: "Wall", start: [0, 0, 0], end: [3600, 0, 0], baseLevel: 0, height: 3000, layer: "0", z: 0, wallThicknessMm: 240, wallTypeName: "BIMOne_Wall_240mm" },
+  { handle: "60", category: "Floor", points: [[0,0,0],[3600,0,0],[3600,2700,0],[0,2700,0]], baseLevel: 0, height: 120, layer: "FLOOR", z: 0, floorThicknessMm: 120, floorTypeName: "BIMOne_Floor_120mm" },
 ];
 const cmdPath = path.join(tmp, "task.commands.json");
 fs.writeFileSync(cmdPath, JSON.stringify(commands, null, 2), "utf-8");
@@ -29,11 +29,11 @@ const fake = net.createServer((sock) => {
     sock.write(JSON.stringify({ jsonrpc: "2.0", id: req.id, result: { ok: true, method: req.method, count: req.params?.data?.length } }));
   });
 });
-await new Promise((r) => fake.listen(8091, "127.0.0.1", r));
+await new Promise((r) => fake.listen(18982, "127.0.0.1", r));
 
 const child = spawn(process.execPath, [serverEntry], {
   stdio: ["pipe", "pipe", "pipe"],
-  env: { ...process.env, BIMONE_REVIT_PORT: "8091" },
+  env: { ...process.env, BIMONE_REVIT_PORT: "18982" },
 });
 let stderr = "";
 child.stderr.on("data", (d) => { stderr += d.toString(); });

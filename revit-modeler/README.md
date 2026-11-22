@@ -24,7 +24,7 @@ revit-modeler/
 │   │   ├── Mapping/                #   IR → ModelCommand（ModelMapper）
 │   │   ├── Serialization/          #   ModelCommand → fanmo_build data JSON
 │   │   └── Utils/                  #   纯几何计算（长度/面积/周长）
-│   ├── RevitModeler.Plugin/        # 【Host】Revit add-in，TCP 8091 + 反射加载命令
+│   ├── RevitModeler.Plugin/        # 【Host】Revit add-in，TCP 8982 + 反射加载命令
 │   │   ├── BIMOne.RevitModeler.addin  # 独立 ClientId
 │   │   ├── Core/{Application,ServerSwitchCommand,FanmoSocketService,FanmoCommandLoader,CommandRegistry}
 │   │   ├── Configuration/CommandManifest.cs
@@ -42,20 +42,20 @@ revit-modeler/
 | mcp-servers-for-revit | revit-modeler | 说明 |
 | --- | --- | --- |
 | `server/`（Node MCP） | `src/RevitModeler.McpServer/` | stdio server，工具按文件分注册，TCP 连插件 |
-| `plugin/`（Host Kernel） | `src/RevitModeler.Plugin/` | Ribbon 开关 + TCP 8091 JSON-RPC + 反射加载命令 |
+| `plugin/`（Host Kernel） | `src/RevitModeler.Plugin/` | Ribbon 开关 + TCP 8982 JSON-RPC + 反射加载命令 |
 | `commandset/Commands/{Architecture,...}/` | `src/RevitModeler.CommandSet/Commands/{Architecture,Review}/` | 同样按领域分包，`ExternalEventCommandBase` + `Execute(JObject, requestId)` |
 | `commandset/Services/`、`Models/`、`Utils/` | 同名子包 | DTO/EventHandler/工具按领域分包 |
 | `command.json` | `command.json` | 由本插件 Host 反射加载 |
 | `plugin/Core/ExternalEventManager.cs` | 不复制 | SDK 基类自建 ExternalEvent + 自等待（IL 探针实证），无需复刻 |
 | （无对应层） | `src/RevitModeler.Core/` | 增补：纯逻辑脑子，可脱离 RevitAPI 单测 |
 
-**独立性**：Revit 端是独立插件、独立建模/review，不与 CAD 端共享进程、不直接通信。ClientId / 端口 8091 只是 Revit add-in 的常规唯一标识，不是为共存做的隔离设计。两端只通过本地 JSON 文件交接（详见 `BIMOne/DATA-LAYER.md`）。
+**独立性**：Revit 端是独立插件、独立建模/review，不与 CAD 端共享进程、不直接通信。ClientId / 端口 8982 只是 Revit add-in 的常规唯一标识，不是为共存做的隔离设计。两端只通过本地 JSON 文件交接（详见 `BIMOne/DATA-LAYER.md`）。
 
 ## 执行链路
 
 ```
 agent 调 revit__fanmo_build(data)  [McpServer, stdio]
-  → TCP 8091 JSON-RPC: method=fanmo_build
+  → TCP 8982 JSON-RPC: method=fanmo_build
   → Plugin FanmoSocketService → CommandRegistry 查命令
   → FanmoBuildCommand.Execute(JObject, requestId) → Handler.SetParameters
   → RaiseAndWaitForCompletion() → SDK 自建 ExternalEvent 切 Revit UI 线程
@@ -107,7 +107,7 @@ node smoke-file-handoff.mjs                   # FILE_HANDOFF_PASS：dataPath 文
         └── command.json
 ```
 
-启动 Revit → 功能区「BIMOne 翻模」选项卡 → 点「翻模服务 开/关」开启（默认 8091）。
+启动 Revit → 功能区「BIMOne 翻模」选项卡 → 点「翻模服务 开/关」开启（默认 8982）。
 端口可用环境变量 `BIMONE_REVIT_PORT` 覆盖（server 与 plugin 两侧需一致）。
 
 ## 已知限制

@@ -21,10 +21,10 @@
 | 层 | 项目 | 职责 |
 | --- | --- | --- |
 | MCP Server | `RevitModeler.McpServer/`（Node/stdio） | 暴露 `revit__*` 工具；读 commands.json → TCP 发命令 |
-| Plugin Host | `RevitModeler.Plugin/`（Revit add-in） | TCP 8091 JSON-RPC + 反射加载 command.json |
+| Plugin Host | `RevitModeler.Plugin/`（Revit add-in） | TCP 8982 JSON-RPC + 反射加载 command.json |
 | CommandSet | `RevitModeler.CommandSet/` | `fanmo_build` / `fanmo_review` 的 Revit API 实现 |
 
-> 端口 8091 与 add-in 的 ClientId 只是 Revit 插件的常规唯一标识，避免与其他 add-in 冲突，
+> 端口 8982 与 add-in 的 ClientId 只是 Revit 插件的常规唯一标识，避免与其他 add-in 冲突，
 > **不是为与任何外部 Host 共存做的隔离设计**。可用 `BIMONE_REVIT_PORT` / `BIMONE_REVIT_HOST` 覆盖连接参数。
 
 ## 2. MCP 工具总表（agent 直接调用）
@@ -65,7 +65,7 @@
 [2] 专家 Read t.ir.json → 语义研判 + cad__verify_image(可选)
                                     ──写──▶ t.commands.json
 [3] revit__fanmo_build(dataPath=t.commands.json)
-        → McpServer 读文件 → TCP 8091 → Plugin → CommandSet 建模
+        → McpServer 读文件 → TCP 8982 → Plugin → CommandSet 建模
 [4] revit__fanmo_review(outPath=t.review.json) ──写──▶ t.review.json
 [5] 专家 Read t.review.json → 问题清单 → 人工兜底
 ```

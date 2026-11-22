@@ -29,7 +29,7 @@ DWG / DXF 图纸
       │                                      （核心交接产物，可直接编辑）
       ▼
 [4] revit__fanmo_build(dataPath=...)
-      │   RevitModeler.McpServer → TCP 8091 → Plugin → CommandSet
+      │   RevitModeler.McpServer → TCP 8982 → Plugin → CommandSet
       ▼
 [5] revit__fanmo_review                     → <task>.review.json
       │                                      （墙/板计数、问题清单）
@@ -117,10 +117,11 @@ cd ../../..
 
 ```powershell
 dotnet run --project cad-reader/src/CadReader.Cli -c Release -- `
-  sampleData/一居室公寓.dwg work/demo/apartment.ir.json
+  sampleData/一居室公寓.dwg work/demo/apartment.ir.json `
+  --commands work/demo/apartment.commands.json
 ```
 
-默认输出为与输入同名的 `<name>.ir.json`；加 `--summary` 只输出统计摘要。完整 IR 仍会写入 `outPath`。
+CLI 默认把完整 IR 写入 `outPath`；加 `--summary` 时 `outPath` 只写统计摘要。加 `--commands <path>` 可基于同一份 IR 直接生成完整 Revit 命令文件，包含墙厚推断、整层楼板轮廓和族占位。
 
 ### 3. 部署 Revit 插件
 
@@ -200,7 +201,7 @@ work/<task-name>/
 
 | 环境变量 | 默认值 | 作用 |
 | --- | --- | --- |
-| `BIMONE_REVIT_PORT` | `8091` | Revit 插件监听端口与 MCP 客户端连接端口，两侧必须一致 |
+| `BIMONE_REVIT_PORT` | `8982` | Revit 插件监听端口与 MCP 客户端连接端口，两侧必须一致 |
 | `BIMONE_REVIT_HOST` | `127.0.0.1` | MCP 客户端连接 Revit 插件的主机，仅客户端使用 |
 | `BIMONE_WORKDIR` | `BIMOne/work/` | 文档约定的工作目录覆盖变量；当前代码尚未接线，请勿依赖 |
 

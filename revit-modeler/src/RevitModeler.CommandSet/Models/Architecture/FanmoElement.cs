@@ -36,4 +36,37 @@ public class FanmoElement
 
     /// <summary>原图 Z (mm)，用于标高判定</summary>
     public double Z { get; set; }
+
+    /// <summary>期望墙类型名；为空时按墙厚查找或创建</summary>
+    public string WallTypeName { get; set; }
+
+    /// <summary>墙厚 (mm)；<=0 表示使用默认墙类型</summary>
+    public double WallThicknessMm { get; set; } = -1;
+
+    /// <summary>期望楼板类型名；为空时使用文档默认楼板类型</summary>
+    public string FloorTypeName { get; set; }
+
+    /// <summary>板厚 (mm)；<=0 表示不覆盖类型默认厚度</summary>
+    public double FloorThicknessMm { get; set; } = -1;
+
+    /// <summary>族名（门/窗/柱占位用）</summary>
+    public string FamilyName { get; set; }
+
+    /// <summary>族实例宽度 (mm)，门/窗占位用；<=0 表示不设置</summary>
+    public double WidthMm { get; set; } = -1;
+
+    /// <summary>截面宽 b (mm)：柱/梁用，来自 CAD 柱块缩放或默认值</summary>
+    public double SectionBMm { get; set; } = -1;
+
+    /// <summary>截面高 h (mm)：柱/梁用</summary>
+    public double SectionHMm { get; set; } = -1;
+
+    /// <summary>构件底标高 (mm)：梁底相对本层标高，用于实例 Z 偏移</summary>
+    public double ElevationMm { get; set; }
+
+    /// <summary>来源标记：cad:* 图纸识别 / default:* 默认值推断，写入报告便于复核</summary>
+    public string Source { get; set; } = "";
+
+    /// <summary>族实例旋转角（度）</summary>
+    public double RotationDeg { get; set; }
 }

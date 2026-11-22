@@ -8,6 +8,9 @@ namespace RevitModeler.Plugin.Core;
 /// <summary>
 /// BIMOne RevitModeler 插件入口（IExternalApplication）。
 /// 与 mcp-servers-for-revit/plugin/Core/Application.cs 对齐：Ribbon 面板 + 开/关 Server 按钮。
+///
+/// 启动策略：由用户点一次「翻模服务 开/关」启动（不随 Revit 自启）。
+/// 服务一旦启动即常驻，之后只更新命令集走 deploy-hot.ps1 热重载，无需重启 Revit。
 /// </summary>
 public class Application : IExternalApplication
 {

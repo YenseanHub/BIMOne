@@ -8,14 +8,21 @@ import { withRevit } from "../utils/ConnectionManager.js";
 const FanmoElementSchema = z.object({
   handle: z.string().optional().describe("CAD 图元句柄，用于全流程追溯"),
   category: z.string().describe("目标类别：Wall / Floor / Door / Window / Column 等"),
-  start: z.array(z.number()).length(3).optional().describe("定位线起点 [x,y,z]，单位 mm"),
-  end: z.array(z.number()).length(3).optional().describe("定位线终点 [x,y,z]，单位 mm"),
-  points: z.array(z.array(z.number()).length(3)).optional().describe("闭合轮廓顶点（楼板用）[[x,y,z],...]，单位 mm"),
+  start: z.array(z.number()).length(3).nullable().optional().describe("定位线起点 [x,y,z]，单位 mm；墙用，楼板可为 null"),
+  end: z.array(z.number()).length(3).nullable().optional().describe("定位线终点 [x,y,z]，单位 mm；墙用，楼板可为 null"),
+  points: z.array(z.array(z.number()).length(3)).nullable().optional().describe("闭合轮廓顶点（楼板用）[[x,y,z],...]，单位 mm；墙可为 null"),
   baseLevel: z.number().optional().describe("标高 mm，相对项目基准"),
   height: z.number().optional().describe("墙高 / 板厚 mm，默认 3000"),
   typeId: z.number().optional().describe("族类型 Id，-1 表示用默认类型"),
   layer: z.string().optional().describe("来源 CAD 图层"),
   z: z.number().optional().describe("原图 Z 值 mm"),
+  wallTypeName: z.string().nullable().optional().describe("期望墙类型名，为空则按墙厚解析"),
+  wallThicknessMm: z.number().optional().describe("墙厚 mm，<=0 表示默认墙类型"),
+  floorTypeName: z.string().nullable().optional().describe("期望楼板类型名，为空则使用默认楼板类型"),
+  floorThicknessMm: z.number().optional().describe("板厚 mm，<=0 表示不覆盖类型默认厚度"),
+  familyName: z.string().nullable().optional().describe("族名，门/窗/柱占位用"),
+  widthMm: z.number().optional().describe("族实例宽度 mm，门/窗占位用"),
+  rotationDeg: z.number().optional().describe("族实例旋转角，单位度"),
 });
 
 export function registerFanmoBuildTool(server: McpServer) {

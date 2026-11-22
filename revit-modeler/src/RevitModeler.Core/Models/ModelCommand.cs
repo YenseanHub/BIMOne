@@ -17,4 +17,12 @@ public sealed class ModelCommand
     public double[] Start { get; set; }
     public double[] End { get; set; }
     public List<double[]> Points { get; set; }
+
+    // 完整翻模扩展字段：墙厚/墙类型、板厚/板类型、族占位
+    public double WallThicknessMm { get; set; } = -1;
+    public string WallTypeName { get; set; } = "";
+    public double FloorThicknessMm { get; set; } = -1;
+    public string FloorTypeName { get; set; } = "";
+    public double WidthMm { get; set; } = -1;
+    public double RotationDeg { get; set; }
 }

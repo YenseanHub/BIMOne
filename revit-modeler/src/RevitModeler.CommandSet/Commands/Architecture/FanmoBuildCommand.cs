@@ -29,9 +29,15 @@ public class FanmoBuildCommand : ExternalEventCommandBase
             if (data is null || data.Count == 0)
                 throw new ArgumentNullException(nameof(data), "翻模输入为空");
 
-            Handler.SetParameters(data);
+            // zoom: 默认 true。翻模坐标来自 CAD 真实坐标系，模型可能离原点上百米，
+            // 不缩放用户会以为“什么都没建”。批量后台建模可传 false 免打扰。
+            var zoom = parameters["zoom"]?.Value<bool>() ?? true;
+            // origin: keep=保留真实坐标（验证度量用），normalize=平移到项目原点附近（人看模型用）
+            var origin = parameters["origin"]?.Value<string>() ?? "keep";
 
-            if (RaiseAndWaitForCompletion(10000))
+            Handler.SetParameters(data, zoom, origin);
+
+            if (RaiseAndWaitForCompletion(600000))
                 return Handler.Result;
 
             throw new TimeoutException("翻模建模超时");

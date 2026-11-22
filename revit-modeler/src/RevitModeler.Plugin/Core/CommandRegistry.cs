@@ -8,6 +8,14 @@ public class CommandRegistry : ICommandRegistry
 {
     private readonly Dictionary<string, IRevitCommand> _commands = new();
 
+    public CommandRegistry() { }
+
+    /// <summary>整体替换式构造：热重载时一次性换成新版本的命令实例，避免逐条增删出现中间态。</summary>
+    public CommandRegistry(IReadOnlyDictionary<string, IRevitCommand> commands)
+    {
+        foreach (var pair in commands) _commands[pair.Key] = pair.Value;
+    }
+
     public void RegisterCommand(IRevitCommand command) => _commands[command.CommandName] = command;
 
     public bool TryGetCommand(string commandName, out IRevitCommand command)

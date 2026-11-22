@@ -1,11 +1,23 @@
-# BIMOne RevitModeler「独立三件套」部署脚本
-# 把 ① Revit 插件(plugin) ② 命令集(commandset) ③ command.json 部署到独立目录，
-# 与 mcp-servers-for-revit Host 完全隔离（独立 ClientId / 端口 8091 / 命令目录）。
+# BIMOne RevitModeler deployment script (independent three-tier stack)
+# Deploys the Revit plugin, command set and command.json to an isolated directory.
+# Kept separate from the mcp-servers-for-revit host (own ClientId / port 8982 / commands directory).
+#
+# Restart policy:
+#   - RevitModeler.Plugin (host) is loaded by Revit itself and can never be reloaded
+#     in-process: changing it always requires one Revit restart.
+#   - RevitModeler.CommandSet is hot-reloadable; after the host supports shadow loading,
+#     use deploy-hot.ps1 for command-set-only changes (no restart).
+#
+# When Revit is running, the plugin directory is locked, so this script automatically
+# deploys into the next versioned directory and repoints the add-in manifest.
+#
+# Keep this file ASCII-only for Windows PowerShell 5.1 compatibility.
 
 param(
     [string]$RevitVersion = "2025",
     [string]$Configuration = "Release",
-    [string]$AddinsRoot = (Join-Path $env:APPDATA "Autodesk/Revit/Addins/$RevitVersion")
+    [string]$AddinsRoot = (Join-Path $env:APPDATA "Autodesk/Revit/Addins/$RevitVersion"),
+    [switch]$Versioned
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,41 +29,100 @@ $cmdSetProj = Join-Path $projectRoot "src/RevitModeler.CommandSet/RevitModeler.C
 $addinSource = Join-Path $projectRoot "src/RevitModeler.Plugin/BIMOne.RevitModeler.addin"
 $commandJson = Join-Path $projectRoot "command.json"
 
-# 构建两个 .NET 项目
-Write-Host "构建 RevitModeler.Plugin ..."
+# Build the two .NET projects
+Write-Host "Building RevitModeler.Plugin ..."
 dotnet build $pluginProj -c $Configuration --nologo | Out-Null
-Write-Host "构建 RevitModeler.CommandSet ..."
+Write-Host "Building RevitModeler.CommandSet ..."
 dotnet build $cmdSetProj -c $Configuration --nologo | Out-Null
 
-$pluginOut = Join-Path $projectRoot "src/RevitModeler.Plugin/bin/$Configuration/$tfm"
-$cmdSetOut = Join-Path $projectRoot "src/RevitModeler.CommandSet/bin/$Configuration/$tfm"
+# The plugin sets AppendTargetFrameworkToOutputPath=false, while the command set keeps the TFM subfolder.
+$pluginOutFlat = Join-Path $projectRoot "src/RevitModeler.Plugin/bin/$Configuration"
+$pluginOutTfm = Join-Path $pluginOutFlat $tfm
+$pluginOut = $pluginOutFlat
+if (-not (Test-Path (Join-Path $pluginOutFlat "RevitModeler.Plugin.dll")) -and (Test-Path $pluginOutTfm)) {
+    $pluginOut = $pluginOutTfm
+}
 
-if (-not (Test-Path $pluginOut)) { Write-Error "找不到 plugin 构建产物: $pluginOut"; exit 1 }
-if (-not (Test-Path $cmdSetOut)) { Write-Error "找不到 commandset 构建产物: $cmdSetOut"; exit 1 }
+$cmdSetOutFlat = Join-Path $projectRoot "src/RevitModeler.CommandSet/bin/$Configuration"
+$cmdSetOutTfm = Join-Path $cmdSetOutFlat $tfm
+$cmdSetOut = $cmdSetOutTfm
+if (Test-Path (Join-Path $cmdSetOutFlat "RevitModeler.CommandSet.dll")) {
+    $cmdSetOut = $cmdSetOutFlat
+}
 
-# 独立插件目录：%AddinsRoot%/BIMOne.RevitModeler/
-$pluginDir = Join-Path $AddinsRoot "BIMOne.RevitModeler"
+if (-not (Test-Path (Join-Path $pluginOut "RevitModeler.Plugin.dll"))) { Write-Error "Plugin build output not found: $pluginOut"; exit 1 }
+if (-not (Test-Path (Join-Path $cmdSetOut "RevitModeler.CommandSet.dll"))) { Write-Error "Command set build output not found: $cmdSetOut"; exit 1 }
+
+# Decide the target directory. Prefer the directory the manifest already points at
+# (so an un-restarted deployment is overwritten instead of piling up _vN folders);
+# if that one is locked by a running Revit, move to the next versioned directory.
+$dirName = "BIMOne.RevitModeler"
+$existingAddin = Join-Path $AddinsRoot "BIMOne.RevitModeler.addin"
+if (Test-Path $existingAddin) {
+    $existingText = Get-Content $existingAddin -Raw
+    $match = [regex]::Match($existingText, '<Assembly>([^/\\]+)[/\\]')
+    if ($match.Success) { $dirName = $match.Groups[1].Value }
+}
+
+$pluginDir = Join-Path $AddinsRoot $dirName
+
+$probe = Join-Path $pluginDir "RevitModeler.Plugin.dll"
+$locked = $false
+if (Test-Path $probe) {
+    try {
+        $fs = [System.IO.File]::Open($probe, [System.IO.FileMode]::Open,
+            [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+        $fs.Close()
+    } catch {
+        $locked = $true
+    }
+}
+
+if ($Versioned -or $locked) {
+    $max = 1
+    Get-ChildItem -Path $AddinsRoot -Directory -Filter "BIMOne.RevitModeler_v*" -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $suffix = $_.Name -replace "^BIMOne\.RevitModeler_v", ""
+            $n = 0
+            if ([int]::TryParse($suffix, [ref]$n) -and $n -gt $max) { $max = $n }
+        }
+    $dirName = "BIMOne.RevitModeler_v$($max + 1)"
+    $pluginDir = Join-Path $AddinsRoot $dirName
+    Write-Host "Plugin directory is in use by a running Revit - deploying to $dirName"
+} else {
+    Write-Host "Deploying to $dirName (not in use)"
+}
+
 $commandsDir = Join-Path $pluginDir "Commands/RevitModeler"
 New-Item -ItemType Directory -Force -Path $commandsDir | Out-Null
 
-# ① addin 注册文件放 Addins 根
-Copy-Item -Force $addinSource (Join-Path $AddinsRoot "BIMOne.RevitModeler.addin")
+# 1) Add-in registration file, repointed at the actual plugin directory.
+#    Written as UTF-8 to match the source manifest; Revit reads it on next start.
+$addinText = Get-Content $addinSource -Raw -Encoding UTF8
+$addinText = $addinText -replace '<Assembly>[^<]*</Assembly>', "<Assembly>$dirName/RevitModeler.Plugin.dll</Assembly>"
+$addinPath = Join-Path $AddinsRoot "BIMOne.RevitModeler.addin"
+[System.IO.File]::WriteAllText($addinPath, $addinText, (New-Object System.Text.UTF8Encoding($false)))
 
-# ② 插件 DLL + 全部依赖放插件目录
+# 2) Plugin DLL and dependencies in the plugin directory
 Get-ChildItem -Path $pluginOut -Filter "*.dll" | Copy-Item -Force -Destination $pluginDir
 Get-ChildItem -Path $pluginOut -Filter "*.pdb" -ErrorAction SilentlyContinue | Copy-Item -Force -Destination $pluginDir
 
-# ③ 命令集 DLL + Core + command.json 放独立命令目录
+# 3) Command set DLLs and command.json in the isolated commands directory
 Get-ChildItem -Path $cmdSetOut -Filter "*.dll" | Copy-Item -Force -Destination $commandsDir
 Get-ChildItem -Path $cmdSetOut -Filter "*.pdb" -ErrorAction SilentlyContinue | Copy-Item -Force -Destination $commandsDir
 Copy-Item -Force $commandJson (Join-Path $commandsDir "command.json")
 
-Write-Host "已部署到:"
-Write-Host "  $AddinsRoot/BIMOne.RevitModeler.addin"
-Write-Host "  $pluginDir (插件 + 依赖)"
-Write-Host "  $commandsDir (命令集 + command.json)"
+# Revit provides RevitAPI/RevitAPIUI in-process. Never ship a copied API assembly,
+# otherwise Revit 2025 reports an assembly version conflict and commands can hang.
+Get-ChildItem $pluginDir, $commandsDir -Filter "RevitAPI*.dll" -ErrorAction SilentlyContinue | Remove-Item -Force
+
 Write-Host ""
-Write-Host "下一步:"
-Write-Host "  1. 启动 Revit $RevitVersion，功能区出现「BIMOne 翻模」选项卡"
-Write-Host "  2. 点「翻模服务 开/关」开启服务（默认端口 8091，可用环境变量 BIMONE_REVIT_PORT 覆盖）"
-Write-Host "  3. 在 MCP 客户端配置 RevitModeler.McpServer（build/index.js）"
+Write-Host "Deployed to:"
+Write-Host "  $addinPath"
+Write-Host "  $pluginDir (plugin + dependencies)"
+Write-Host "  $commandsDir (command set + command.json)"
+Write-Host ""
+Write-Host "Next steps:"
+Write-Host "  1. Start (or restart) Revit $RevitVersion and open the BIMOne ribbon tab"
+Write-Host "  2. Click the modeling service on/off button (default port 8982, override with BIMONE_REVIT_PORT)"
+Write-Host "  3. Later command-set-only changes: .\scripts\deploy-hot.ps1  (no restart)"
