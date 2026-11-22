@@ -1,0 +1,26 @@
+{
+  "name": "bimone-revit-modeler-mcp",
+  "version": "0.1.0",
+  "description": "BIMOne 翻模 MCP Server：把 Revit 建模/复查能力暴露为 MCP 工具，经 TCP JSON-RPC 驱动独立的 RevitModeler.Plugin",
+  "type": "module",
+  "bin": {
+    "bimone-revit-modeler-mcp": "./build/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "clean": "rimraf build",
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.2"
+  }
+}

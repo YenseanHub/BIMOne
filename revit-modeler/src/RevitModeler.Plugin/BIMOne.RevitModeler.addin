@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <!-- 独立 ClientId：与 mcp-servers-for-revit 的 090A4C8C-... 不同，二者可共存 -->
+  <AddIn Type="Application">
+    <Name>BIMOne RevitModeler</Name>
+    <Assembly>RevitModeler.Plugin/RevitModeler.Plugin.dll</Assembly>
+    <FullClassName>RevitModeler.Plugin.Core.Application</FullClassName>
+    <ClientId>7C4E1F2A-9B83-4D51-A6C0-3E8F2D74B190</ClientId>
+    <VendorId>BIMOne</VendorId>
+    <VendorDescription>BIMOne CAD-to-Revit fanmo toolchain</VendorDescription>
+  </AddIn>
+</RevitAddIns>

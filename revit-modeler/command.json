@@ -1,0 +1,22 @@
+{
+  "name": "RevitModelerCommandSet",
+  "description": "CAD 翻模命令集：由 cad-reader 的 IR 驱动 Revit 占位建模与复查",
+  "developer": {
+    "name": "BIMOne",
+    "email": "",
+    "website": "",
+    "organization": "BIMOne"
+  },
+  "commands": [
+    {
+      "commandName": "fanmo_build",
+      "description": "按 IR 图元清单在 Revit 中批量建模（墙/楼板占位，LOD100）",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    },
+    {
+      "commandName": "fanmo_review",
+      "description": "复查当前模型的墙/板并输出问题清单（零长度/坐标缺失）",
+      "assemblyPath": "RevitModeler.CommandSet.dll"
+    }
+  ]
+}

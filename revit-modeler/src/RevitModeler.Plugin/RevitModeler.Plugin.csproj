@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    RevitModeler.Plugin —— BIMOne 翻模系统「独立三件套」的 Revit 端 Host Kernel。
+    与 mcp-servers-for-revit 的 plugin/ 职责对齐：Ribbon 开关 + TCP/JSON-RPC 服务 + commandset 反射加载。
+    隔离策略：独立程序集名 / 独立 ClientId / 独立命令目录 / 独立端口(默认 8091)，可与 revit-mcp Host 共存于同一 Revit 进程。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>RevitModeler.Plugin</RootNamespace>
+    <AssemblyName>RevitModeler.Plugin</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2025.*" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2025.*" />
+    <PackageReference Include="RevitMCPSDK" Version="2025.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="BIMOne.RevitModeler.addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

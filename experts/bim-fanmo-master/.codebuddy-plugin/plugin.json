@@ -1,0 +1,53 @@
+{
+  "name": "bim-fanmo-master",
+  "version": "1.0.0",
+  "description": "BIM reverse-modeling expert: reads DWG drawings, infers semantic layers, cross-validates with embedded previews, and drives Revit modeling.",
+  "author": {
+    "name": "BIMOne",
+    "email": "bimone@example.com"
+  },
+  "agents": ["./agents/bim-fanmo-master.md"],
+  "skills": ["./skills/fanmo-workflow"],
+
+  "expertType": "agent",
+  "agentName": "bim-fanmo-master",
+
+  "displayName": {
+    "en": "BIM Reverse Modeling Master",
+    "zh": "BIM翻模大师"
+  },
+  "profession": {
+    "en": "BIM Reverse Modeling Expert",
+    "zh": "BIM翻模专家"
+  },
+  "displayDescription": {
+    "en": "Reads DWG/DXF drawings, infers wall/floor/door semantics without project rules, cross-validates with the drawing's embedded preview, and drives Revit modeling with auditable review.",
+    "zh": "输入DWG图纸，无规则推断墙楼板门窗语义，以内嵌预览图交叉验证，驱动Revit占位建模与族库精化。"
+  },
+  "avatar": "avatars/expert.jpg",
+  "categoryId": "02-Engineering",
+  "defaultInitPrompt": {
+    "zh": "我有一张 DWG 图纸，帮我从读取、推断、交叉验证到 Revit 翻模走一遍，并告诉我哪些地方需要人工复核。",
+    "en": "I have a DWG drawing. Walk me through reading, semantic inference, cross-validation and Revit modeling, and tell me what needs manual review."
+  },
+  "plugin": "bim-fanmo-master",
+  "tags": [
+    { "en": "DWG/DXF Parsing", "zh": "DWG解析" },
+    { "en": "Revit Modeling", "zh": "Revit建模" },
+    { "en": "Semantic Inference", "zh": "语义推断" }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I have a DWG drawing. Walk me through reading, semantic inference, cross-validation and Revit modeling, and tell me what needs manual review.",
+      "zh": "我有一张 DWG 图纸，帮我从读取、推断、交叉验证到 Revit 翻模走一遍，并告诉我哪些地方需要人工复核。"
+    },
+    {
+      "en": "Parse this DWG and report the layer/entity statistics and Z-value issues, without modeling yet.",
+      "zh": "先只解析这张 DWG，报告图层与图元统计、Z 值问题，先不要建模。"
+    },
+    {
+      "en": "Cross-validate the parsed result against the DWG embedded preview and list the low-consistency regions.",
+      "zh": "用 DWG 内嵌预览图交叉验证解析结果，列出低一致区域和疑似漏解析的地方。"
+    }
+  ]
+}
